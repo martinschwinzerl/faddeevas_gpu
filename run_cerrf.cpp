@@ -55,8 +55,34 @@ int main( int const argc, char* argv[] )
     {
         std::cout << "Usage: " << argv[ 0 ]
                   << " [PLATFORM_ID [DEVICE_ID [NUM_EVALUATIONS"
-                  << " [NUM_REPETITIONS [KERNEL_BASE_DIR]]]]]\r\n"
-                  << std::endl;
+                  << " [NUM_REPETITIONS [KERNEL_BASE_DIR]]]]]\r\n\r\n"
+                  << "OpenCL Devices / Platforms: \r\n";
+
+        std::vector< cl::Platform > platforms;
+        cl::Platform::get( &platforms );
+
+        int platform_id = 0;
+        assert( !platforms.empty() );
+
+        for( auto& platform : platforms )
+        {
+            std::vector< cl::Device > devices;
+            int device_id = 0;
+            platform.getDevices( CL_DEVICE_TYPE_ALL, &devices );
+
+            for( auto const& device : devices )
+            {
+                std::cout << "platform_id = " << platform_id
+                          << ", device_id = " << device_id++
+                          << ", device_name = "
+                          << device.getInfo< CL_DEVICE_NAME >()
+                          << "[ " << device.getInfo< CL_DEVICE_VENDOR_ID >()
+                          << " ]\r\n";
+            }
+
+            ++platform_id;
+        }
+        std::cout << std::endl;
 
         return 0;
     }
