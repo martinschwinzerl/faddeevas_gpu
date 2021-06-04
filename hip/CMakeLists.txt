@@ -60,4 +60,5 @@ endif()
 
 include_directories( "${CMAKE_SOURCE_DIR}/hip" )
 
-HIP_ADD_EXECUTABLE( cerrf_base_hip cerrf_base.cpp cerrf_base_impl.h )
+HIP_ADD_EXECUTABLE( cerrf_base_hip run_cerrf_base.cpp )
+HIP_ADD_EXECUTABLE( cerrf_optimised_hip run_cerrf_optimised.cpp )

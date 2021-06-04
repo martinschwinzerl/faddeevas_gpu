@@ -15,8 +15,6 @@
     #include "hip/hip_ext.h"
 #endif
 
-#include "hip/cerrf_base_impl.h"
-
 #if !defined( CERRF_DEVICE_FN )
     #define CERRF_DEVICE_FN __device__
 #endif /* !defined( CERRF_DEVICE_FN ) */
@@ -74,6 +72,10 @@
 #if !defined( CERRF_DOUBLE_EPS )
     #define  CERRF_DOUBLE_EPS 2.22e-16
 #endif /* !defined( CERRF_DOUBLE_EPS ) */
+
+#if !defined( CERRF_ASSERT )
+    #define CERRF_ASSERT( Expr )
+#endif /* !defined( CERRF_ASSERT ) */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -183,8 +185,6 @@ __global__ void cerrf_eval(
     long int const idx = threadIdx.x + blockIdx.x * blockDim.x;
 
     if( idx < nn )
-    {
-        if( idx < nn )
     {
         double x = in_x[ idx ];
         double y = in_y[ idx ];
@@ -448,18 +448,18 @@ int main( int argc, char* argv[] )
 
     /* Prepare cuda events to estimate the elapsed wall time */
 
-    ::hipEvent_t start;
-    status = ::hipEventCreate( &start );
-    assert( status == hipSuccess );
-
-    ::hipEvent_t stop;
-    status = ::hipEventCreate( &stop );
-    assert( status == hipSuccess );
-
-    std::vector< float > times( NUM_EVALUATIONS, float{ 0. } );
+    std::vector< float > times( NUM_REPETITIONS, float{ 0. } );
 
     for( long int rr = 0 ; rr < NUM_REPETITIONS ; ++rr )
     {
+        ::hipEvent_t start;
+        status = ::hipEventCreate( &start );
+        assert( status == hipSuccess );
+
+        ::hipEvent_t stop;
+        status = ::hipEventCreate( &stop );
+        assert( status == hipSuccess );
+
         /* Run kernel */
         if( !event_timing )
         {
@@ -493,6 +493,9 @@ int main( int argc, char* argv[] )
         float wtime = float{ 0.0 };
         check_error( ::hipEventElapsedTime( &wtime, start, stop ) );
         times[ rr ] = wtime;
+
+        ::hipEventDestroy( start );
+        ::hipEventDestroy( stop );
     }
 
     status = ::hipMemcpy( x_result.data(), out_x_arg,
@@ -521,9 +524,6 @@ int main( int argc, char* argv[] )
     ::hipFree( out_y_arg );
     out_x_arg = nullptr;
     out_y_arg = nullptr;
-
-    ::hipEventDestroy( start );
-    ::hipEventDestroy( stop );
 
     return 0;
 }
