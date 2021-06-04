@@ -8,8 +8,9 @@ endif()
 
 find_package( OpenCL REQUIRED )
 
-set( CERRF_OPENCL_RUNTIME_COMPILE_OPTIONS "-save-temps" )
+add_subdirectory( hip )
 
+set( CERRF_OPENCL_RUNTIME_COMPILE_OPTIONS "-save-temps" )
 configure_file( run_cerrf.h.template ${CMAKE_SOURCE_DIR}/run_cerrf.h @ONLY )
 
 # ==============================================================================
