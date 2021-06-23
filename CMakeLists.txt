@@ -6,19 +6,46 @@ if( NOT CMAKE_BUILD_TYPE )
        "Build type [Debug ReleaseRelWithDebInfo MinSizeRel]" FORCE )
 endif()
 
+add_library( faddeevas_opencl_common_cxx OBJECT
+    common/definitions.h common/benchmark_item.h common/benchmark_item.cpp
+    common/helper_functions.h )
+
+target_include_directories( faddeevas_opencl_common_cxx
+    PRIVATE ${CMAKE_SOURCE_DIR} )
+
+set_target_properties( faddeevas_opencl_common_cxx PROPERTIES
+    CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON )
+
+
+add_library( faddeevas_opencl_common_c OBJECT
+    common/definitions.h common/helper_functions.h common/helper_functions.c )
+
+target_include_directories( faddeevas_opencl_common_c
+    PRIVATE ${CMAKE_SOURCE_DIR} )
+
 find_package( OpenCL REQUIRED )
 
-add_subdirectory( hip )
 
-set( CERRF_OPENCL_RUNTIME_COMPILE_OPTIONS "-save-temps" )
-configure_file( run_cerrf.h.template ${CMAKE_SOURCE_DIR}/run_cerrf.h @ONLY )
+# set( CERRF_OPENCL_RUNTIME_COMPILE_OPTIONS "-save-temps" )
+# configure_file( run_cerrf.h.template ${CMAKE_SOURCE_DIR}/run_cerrf.h @ONLY )
 
 # ==============================================================================
 
-add_executable( run_cerrf run_cerrf.cpp )
-set_target_properties( run_cerrf PROPERTIES
-    POSITION_INDEPENDENT_CODE ON CXX_STANDARD 11 CXX_STANDARD_REQUIRED ON )
-target_compile_definitions( run_cerrf PUBLIC -DCL_HPP_ENABLE_EXCEPTIONS )
-target_link_libraries( run_cerrf OpenCL::OpenCL )
+add_executable( run_wofz_opencl run_opencl.cpp
+    $<TARGET_OBJECTS:faddeevas_opencl_common_cxx>
+    $<TARGET_OBJECTS:faddeevas_opencl_common_c> )
+
+target_include_directories( run_wofz_opencl
+    PRIVATE ${CMAKE_SOURCE_DIR} )
+
+set_target_properties( run_wofz_opencl
+    PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON )
+
+target_link_libraries( run_wofz_opencl OpenCL::OpenCL )
+target_compile_definitions( run_wofz_opencl PUBLIC -DCL_HPP_ENABLE_EXCEPTIONS )
+target_compile_definitions( run_wofz_opencl PUBLIC -DCL_HPP_TARGET_OPENCL_VERSION=300 )
 
 
+# add_executable( run_cerrf run_cerrf.cpp )
+# set_target_properties( run_cerrf PROPERTIES
+#     POSITION_INDEPENDENT_CODE ON CXX_STANDARD 11 CXX_STANDARD_REQUIRED ON )
