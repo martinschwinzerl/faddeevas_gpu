@@ -46,6 +46,24 @@ target_compile_definitions( run_wofz_opencl PUBLIC -DCL_HPP_ENABLE_EXCEPTIONS )
 target_compile_definitions( run_wofz_opencl PUBLIC -DCL_HPP_TARGET_OPENCL_VERSION=300 )
 
 
+add_executable( run_wofz_opencl_abrarov_quine_2011 run_opencl_abrarov_quine.cpp
+    abrarov_quine_2011/definitions.h
+    abrarov_quine_2011/coefficients.h
+    abrarov_quine_2011/ErrorFunctions.h
+    abrarov_quine_2011/ErrorFunctions.c
+    $<TARGET_OBJECTS:faddeevas_opencl_common_cxx>
+    $<TARGET_OBJECTS:faddeevas_opencl_common_c> )
+
+target_include_directories( run_wofz_opencl_abrarov_quine_2011
+    PRIVATE ${CMAKE_SOURCE_DIR} )
+
+set_target_properties( run_wofz_opencl_abrarov_quine_2011
+    PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON )
+
+target_link_libraries( run_wofz_opencl_abrarov_quine_2011 OpenCL::OpenCL )
+target_compile_definitions( run_wofz_opencl_abrarov_quine_2011 PUBLIC -DCL_HPP_ENABLE_EXCEPTIONS )
+target_compile_definitions( run_wofz_opencl_abrarov_quine_2011 PUBLIC -DCL_HPP_TARGET_OPENCL_VERSION=300 )
+
 # add_executable( run_cerrf run_cerrf.cpp )
 # set_target_properties( run_cerrf PROPERTIES
 #     POSITION_INDEPENDENT_CODE ON CXX_STANDARD 11 CXX_STANDARD_REQUIRED ON )
