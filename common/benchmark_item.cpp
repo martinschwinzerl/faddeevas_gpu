@@ -40,6 +40,70 @@ namespace faddeevas
         }
     }
 
+    InitDiscreteValues::InitDiscreteValues( toml::node const* config ):
+        InitArgumentBase( "discrete_values", config )
+    {
+        this->m_values.clear();
+
+        if( ( config != nullptr ) && ( config->as_table() != nullptr ) )
+        {
+            auto tbl = *config->as_table();
+
+            {
+                auto temp = tbl[ "wavefront_size" ].value< int >();
+                this->m_wavefront_size = ( temp.has_value() )
+                    ? temp.value() : int{ 32 };
+            }
+
+            {
+                auto temp = tbl[ "default_value" ].value< real_type >();
+                this->m_default_value = ( temp.has_value() )
+                    ? temp.value() : real_type{ 1 };
+            }
+
+            std::ostringstream a2str;
+            a2str << "wavefront_size = "   << this->m_wavefront_size
+                  << "; default_value = " << this->m_default_value;
+
+
+            if( tbl[ "values" ].as_array() != nullptr )
+            {
+                auto vals = *tbl[ "values" ].as_array();
+
+                std::size_t num_entries = vals.size();
+
+                if( static_cast< int >( num_entries ) > this->m_wavefront_size )
+                {
+                    num_entries = this->m_wavefront_size;
+                }
+
+                for( std::size_t ii = 0u ; ii < num_entries ; ++ii )
+                {
+                    real_type const v = ( vals[ ii ].value< real_type >().has_value() )
+                        ? vals[ ii ].value< real_type >().value()
+                        : this->m_default_value;
+                }
+            }
+
+            if( !this->m_values.empty() )
+            {
+                bool first = true;
+                a2str << "; values = [ ";
+
+                for( auto const& v : this->m_values )
+                {
+                    if( !first ) a2str << ", ";
+                    a2str << v;
+                    first = false;
+                }
+
+                a2str << " ]";
+            }
+
+            this->m_config_str = a2str.str();
+        }
+    }
+
     InitUniformRandom::InitUniformRandom(
         InitUniformRandom::prng_type& prng,
         toml::node const* config ):
@@ -172,7 +236,7 @@ namespace faddeevas
 
             if( tbl[ "default_y_arg" ].as_table() != nullptr )
             {
-                this->default_init_x_arg = std::move( this->create_init_arg(
+                this->default_init_y_arg = std::move( this->create_init_arg(
                     tbl[ "default_y_arg" ].as_table() ) );
             }
 
@@ -244,6 +308,10 @@ namespace faddeevas
                 {
                     ptr.reset( new InitUniformRandom(
                         this->m_prng, arg_config_node ) );
+                }
+                else if( config_name.compare( "discrete_values" ) == 0 )
+                {
+                    ptr.reset( new InitDiscreteValues( arg_config_node ) );
                 }
             }
         }

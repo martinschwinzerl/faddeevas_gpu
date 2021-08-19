@@ -95,6 +95,73 @@ namespace faddeevas
         real_type  m_max_value = real_type{ 1. };
     };
 
+    struct InitDiscreteValues : public InitArgumentBase
+    {
+        InitDiscreteValues( toml::node const* config = nullptr );
+        InitDiscreteValues( InitDiscreteValues const& ) = default;
+        InitDiscreteValues( InitDiscreteValues&& ) = default;
+
+        InitDiscreteValues& operator=( InitDiscreteValues const& ) = default;
+        InitDiscreteValues& operator=( InitDiscreteValues&& ) = default;
+
+        virtual ~InitDiscreteValues() = default;
+
+        void init( real_type* in_begin, real_type* in_end ) override
+        {
+            CERRF_ASSERT( in_begin != nullptr );
+            CERRF_ASSERT( in_end   != nullptr );
+
+            auto it  = in_begin;
+            auto end = in_begin;
+            std::advance( end, this->m_wavefront_size );
+
+            auto const n_values = std::distance( in_begin, in_end );
+            CERRF_ASSERT( this->m_wavefront_size > 0 );
+            CERRF_ASSERT( this->m_values.size() <= this->m_wavefront_size );
+
+            auto const num_waves  = n_values / this->m_wavefront_size;
+            auto const remainders = n_values - num_waves * this->m_wavefront_size;
+
+            for( int ii = 0 ; ii < num_waves ; ++ii )
+            {
+                std::fill( it, end, this->m_default_value );
+                if( !this->m_values.empty() )
+                {
+                    std::copy( this->m_values.begin(), this->m_values.end(), it );
+                }
+
+                std::advance( it,  this->m_wavefront_size );
+                std::advance( end, this->m_wavefront_size );
+            }
+
+            if( remainders != 0 )
+            {
+                CERRF_ASSERT( end != in_end );
+                std::fill( it, end, this->m_default_value );
+
+                if( !this->m_values.empty() )
+                {
+                    if( static_cast< int >( this->m_values.size() ) <=
+                        remainders )
+                    {
+                        std::copy( this->m_values.begin(),
+                                   this->m_values.end(), it );
+                    }
+                    else
+                    {
+                        auto in_end = this->m_values.begin();
+                        std::advance( in_end, remainders );
+                        std::copy( this->m_values.begin(), in_end, it );
+                    }
+                }
+            }
+        }
+
+        std::vector< real_type > m_values = std::vector< real_type >{};
+        real_type m_default_value = real_type{ 0 };
+        int m_wavefront_size = 32;
+    };
+
     /* ********************************************************************* */
 
     struct BenchmarkItem
