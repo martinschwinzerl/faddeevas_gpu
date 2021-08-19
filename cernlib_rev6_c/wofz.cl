@@ -405,7 +405,7 @@ __kernel void eval_wofz(
             real_type const exp_arg  = ( y - x ) * ( y + x );
             real_type exp_sin_arg, exp_cos_arg;
             temp = ( real_type )2.0 * exp( exp_arg );
-            cerrf_sincos( ( real_type )2.0 * x * y, &exp_sin_arg, &exp_cos_arg );
+            exp_sin_arg = sincos( ( real_type )2.0 * x * y, &exp_cos_arg );
             exp_sin_arg *= temp;
             exp_cos_arg *= temp;
 
